@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预约大厅</title>
+
+<style>
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #b2d3ec, #c4e7ed);
+    min-height: 100vh;
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+}
+
+.container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 40px auto;
+}
+
+h1 {
+    text-align: center;
+    color: #0d6efd;
+}
+
+.department-box,
+.project-box,
+.form-box {
+    background: rgba(255,255,255,0.92);
+    padding: 25px;
+    border-radius: 14px;
+    margin-top: 25px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.department-list,
+.project-list {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.department-btn,
+.project-btn {
+    border: none;
+    padding: 15px 28px;
+    border-radius: 12px;
+    background: #0d6efd;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.department-btn:hover,
+.project-btn:hover {
+    background: #084298;
+}
+
+.project-btn {
+    background: #20c997;
+}
+
+.project-btn:hover {
+    background: #158765;
+}
+
+form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+label {
+    font-weight: bold;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    box-sizing: border-box;
+}
+
+.gender input {
+    width: auto;
+}
+
+.submit-btn {
+    background: #0d6efd;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+.selected-info {
+    text-align: center;
+    color: #555;
+    margin-bottom: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>预约大厅</h1>
+
+    <!-- 第一排：科室 -->
+    <div class="department-box">
+        <h2>请选择预约科室</h2>
+
+        <div class="department-list">
+            <button class="department-btn" onclick="selectDepartment('内科')">内科</button>
+            <button class="department-btn" onclick="selectDepartment('外科')">外科</button>
+            <button class="department-btn" onclick="selectDepartment('儿科')">儿科</button>
+            <button class="department-btn" onclick="selectDepartment('口腔科')">口腔科</button>
+            <button class="department-btn" onclick="selectDepartment('眼科')">眼科</button>
+            <button class="department-btn" onclick="selectDepartment('皮肤科')">皮肤科</button>
+        </div>
+    </div>
+
+    <!-- 第二步：项目 -->
+    <div class="project-box hidden" id="projectBox">
+        <h2>请选择预约项目</h2>
+        <p class="selected-info" id="selectedDepartmentText"></p>
+        <div class="project-list" id="projectList"></div>
+    </div>
+
+    <!-- 第三步：预约表单 -->
+    <div class="form-box hidden" id="formBox">
+        <h2>填写预约信息</h2>
+        <p class="selected-info" id="selectedProjectText"></p>
+
+        <form action="#" method="post">
+            <input type="hidden" id="departmentInput" name="department">
+            <input type="hidden" id="projectInput" name="project">
+
+            <label for="name">姓名:</label>
+            <input type="text" id="name" name="name" placeholder="请输入您的姓名" required><br><br>
+
+            <label>性别:</label>
+            <div class="gender">
+                <input type="radio" id="male" name="gender" value="男" required>
+                <label for="male">男</label>
+
+                <input type="radio" id="female" name="gender" value="女">
+                <label for="female">女</label>
+
+                <input type="radio" id="else" name="gender" value="其他">
+                <label for="else">其他</label>
+            </div>
+            <br>
+
+            <label for="age">年龄:</label>
+            <input type="number" id="age" name="age" placeholder="请输入您的年龄" required><br><br>
+
+            <label for="telephone">电话:</label>
+            <input type="tel" id="telephone" name="telephone" placeholder="请输入您的电话号码" required><br><br>
+
+            <label for="date">预约日期:</label>
+            <input type="date" id="date" name="date" required><br><br>
+
+            <label for="time">预约时间:</label>
+            <input type="time" id="time" name="time" required><br><br>
+
+            <label for="remark">备注:</label>
+            <textarea id="remark" name="remark" rows="3" placeholder="请输入症状或其他需求"></textarea><br><br>
+
+            <input class="submit-btn" type="submit" value="确定预约">
+        </form>
+    </div>
+
+</div>
+
+<script>
+const departmentProjects = {
+    "内科": ["感冒", "发烧", "咳嗽", "高血压", "糖尿病"],
+    "外科": ["外伤处理", "伤口换药", "术后复查", "手术咨询"],
+    "儿科": ["儿童发烧", "儿童咳嗽", "疫苗接种", "儿童体检"],
+    "口腔科": ["洗牙", "补牙", "拔牙", "牙齿矫正"],
+    "眼科": ["视力检查", "近视检查", "眼干眼涩", "结膜炎"],
+    "皮肤科": ["过敏", "湿疹", "痤疮", "皮肤瘙痒"]
+};
+
+let selectedDepartment = "";
+let selectedProject = "";
+
+function selectDepartment(department) {
+    selectedDepartment = department;
+    selectedProject = "";
+
+    document.getElementById("projectBox").classList.remove("hidden");
+    document.getElementById("formBox").classList.add("hidden");
+
+    document.getElementById("selectedDepartmentText").innerText =
+        "当前选择科室：" + department;
+
+    const projectList = document.getElementById("projectList");
+    projectList.innerHTML = "";
+
+    departmentProjects[department].forEach(project => {
+        const btn = document.createElement("button");
+        btn.className = "project-btn";
+        btn.innerText = project;
+        btn.onclick = function () {
+            selectProject(project);
+        };
+        projectList.appendChild(btn);
+    });
+}
+
+function selectProject(project) {
+    selectedProject = project;
+
+    document.getElementById("formBox").classList.remove("hidden");
+
+    document.getElementById("selectedProjectText").innerText =
+        "已选择：" + selectedDepartment + " - " + selectedProject;
+
+    document.getElementById("departmentInput").value = selectedDepartment;
+    document.getElementById("projectInput").value = selectedProject;
+}
+</script>
+
+</body>
+</html>
