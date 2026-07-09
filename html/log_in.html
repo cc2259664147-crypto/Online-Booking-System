@@ -60,6 +60,7 @@ function login() {
   if ((loginName === user.username || loginName === user.phone) && loginPassword === user.password) {
     localStorage.setItem("isLogin", "true");
     localStorage.setItem("currentUser", JSON.stringify(user));
+    localStorage.setItem("token", "local-login-token");
     alert("登录成功");
     location.href = "home.html";
   } else {

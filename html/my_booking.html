@@ -24,7 +24,6 @@ h1 {
     color: #0d6efd;
 }
 
-.search-box,
 .result-box {
     background: rgba(255,255,255,0.94);
     padding: 25px;
@@ -33,11 +32,12 @@ h1 {
     box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 
-input {
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-    margin-top: 8px;
+.card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 15px;
+    background: white;
 }
 
 button {
@@ -46,10 +46,10 @@ button {
     border-radius: 8px;
     cursor: pointer;
     color: white;
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
-.search-btn {
+.refresh-btn {
     background: #0d6efd;
 }
 
@@ -59,14 +59,6 @@ button {
 
 .back-btn {
     background: #6c757d;
-}
-
-.card {
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 18px;
-    margin-bottom: 15px;
-    background: white;
 }
 
 .status {
@@ -81,12 +73,12 @@ button {
     color: #198754;
 }
 
-.cancelled {
-    color: #dc3545;
-}
-
 .completed {
     color: #0d6efd;
+}
+
+.cancelled {
+    color: #dc3545;
 }
 
 .empty {
@@ -102,82 +94,102 @@ button {
 
     <h1>我的预约</h1>
 
-    <div class="search-box">
-        <label for="telephone"><b>请输入手机号查询预约：</b></label>
-        <input type="tel" id="telephone" placeholder="请输入预约时填写的手机号">
-
-        <button class="search-btn" onclick="searchAppointments()">查询预约</button>
-        <button class="back-btn" onclick="location.href='home.html'">返回主页</button>
-    </div>
-
     <div class="result-box">
-        <h2>预约记录</h2>
-        <div id="appointmentList" class="empty">暂无查询结果</div>
+        <button class="refresh-btn" onclick="loadAppointments()">刷新预约</button>
+        <button class="back-btn" onclick="location.href='home.html'">返回主页</button>
+
+        <hr>
+
+        <div id="appointmentList" class="empty">正在加载预约记录...</div>
     </div>
 
 </div>
 
 <script>
-function searchAppointments() {
-    const telephone = document.getElementById("telephone").value.trim();
+window.onload = function () {
+    checkLogin();
+    loadAppointments();
+};
+
+function checkLogin() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("请先登录后查看预约");
+        location.href = "log_in.html";
+    }
+}
+
+function loadAppointments() {
+    const token = localStorage.getItem("token");
     const list = document.getElementById("appointmentList");
 
-    if (!telephone) {
-        alert("请输入手机号");
-        return;
-    }
+    list.innerHTML = "加载中...";
 
-    list.innerHTML = "查询中...";
+    fetch("http://127.0.0.1:5000/api/appointments", {
+        method: "GET",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            list.innerHTML = `<p class="empty">${data.error}</p>`;
+            return;
+        }
 
-    fetch(`http://127.0.0.1:5000/api/appointments?telephone=${telephone}`)
-        .then(res => res.json())
-        .then(data => {
-            const appointments = data.data || [];
-            if(appointments.length == 0){
-                list.innerHTML = `<p class="empty">暂无预约记录</p>`;
-                return;
-            }
+        const appointments = data.data || [];
 
-            list.innerHTML = "";
+        if (appointments.length === 0) {
+            list.innerHTML = `<p class="empty">暂无预约记录</p>`;
+            return;
+        }
 
-            appointments.forEach(item => {
-                const card = document.createElement("div");
-                card.className = "card";
+        list.innerHTML = "";
 
-                card.innerHTML = `
-                    <h3>${item.department} - ${item.project}</h3>
-                    <p><b>姓名：</b>${item.name || ""}</p>
-                    <p><b>电话：</b>${item.telephone || ""}</p>
-                    <p><b>预约时间：</b>${formatTime(item.start_time)}</p>
-                    <p><b>备注：</b>${item.remark || "无"}</p>
-                    <p><b>状态：</b>
-                        <span class="status ${item.status}">
-                            ${translateStatus(item.status)}
-                        </span>
-                    </p>
-                    ${
-                        item.status === "pending" || item.status === "confirmed"
-                        ? `<button class="cancel-btn" onclick="cancelAppointment(${item.id})">取消预约</button>`
-                        : ""
-                    }
-                `;
+        appointments.forEach(item => {
+            const card = document.createElement("div");
+            card.className = "card";
 
-                list.appendChild(card);
-            });
-        })
-        .catch(err => {
-            console.error(err);
-            list.innerHTML = `<p class="empty">查询失败，请检查后端是否启动</p>`;
+            card.innerHTML = `
+                <h3>${item.department || item.service_name || "预约服务"}</h3>
+                <p><b>项目：</b>${item.project || "暂无"}</p>
+                <p><b>预约时间：</b>${formatTime(item.start_time)}</p>
+                <p><b>状态：</b>
+                    <span class="status ${item.status}">
+                        ${translateStatus(item.status)}
+                    </span>
+                </p>
+                <p><b>备注：</b>${item.remark || "无"}</p>
+                ${
+                    item.status === "pending" || item.status === "confirmed"
+                    ? `<button class="cancel-btn" onclick="cancelAppointment(${item.id})">取消预约</button>`
+                    : ""
+                }
+            `;
+
+            list.appendChild(card);
         });
+    })
+    .catch(err => {
+        console.error(err);
+        list.innerHTML = `<p class="empty">加载失败，请检查后端是否启动</p>`;
+    });
 }
 
 function cancelAppointment(id) {
+    const token = localStorage.getItem("token");
+
     if (!confirm("确定要取消这个预约吗？")) {
         return;
     }
 
     fetch(`http://127.0.0.1:5000/api/appointments/${id}/cancel`, {
-        method: "PUT"
+        method: "PUT",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
     })
     .then(res => res.json())
     .then(data => {
@@ -185,7 +197,7 @@ function cancelAppointment(id) {
             alert(data.error);
         } else {
             alert(data.message || "预约已取消");
-            searchAppointments();
+            loadAppointments();
         }
     })
     .catch(err => {
@@ -201,7 +213,6 @@ function translateStatus(status) {
         completed: "已完成",
         cancelled: "已取消"
     };
-
     return map[status] || status;
 }
 
