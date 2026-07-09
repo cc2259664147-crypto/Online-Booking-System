@@ -2,15 +2,13 @@ from flask import Blueprint, request, jsonify
 from init import db
 from datetime import datetime
 from sqlalchemy import and_
-from appointment import Appointment
+from models import Appointment
 from service import Service
 
 appointment_bp = Blueprint('appointment', __name__)
 
 def _current_user():
-    """
-    临时占位：模拟从 JWT 中获取当前登录用户。
-    """
+    """临时占位：模拟从 JWT 中获取当前登录用户。"""
     return getattr(request, 'current_user', None)
 
 def _require_auth(fn):
@@ -39,41 +37,49 @@ def _require_admin(fn):
 
 
 # ============================================================
-# 接口1: 创建预约（含冲突检测）
+# 接口1: 创建预约（适配前端表单）
 # ============================================================
-@appointment_bp.route('/appointments', methods=['POST'])
+@appointment_bp.route('/api/appointments', methods=['POST'])
 @_require_auth
 def create_appointment():
-    """用户创建预约"""
     user = _current_user()
     
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "请求体不能为空"}), 400
 
-    service_name = data.get('service_name', '').strip()
-    start_time_str = data.get('start_time')
-    end_time_str = data.get('end_time')
+    # 前端表单字段
+    service_name = data.get('department', '').strip()  # 前端用 department
+    project_name = data.get('project', '').strip()
+    patient_name = data.get('name', '').strip()
+    gender = data.get('gender', '').strip()
+    age = data.get('age')
+    telephone = data.get('telephone', '').strip()
+    appointment_date = data.get('date', '').strip()
+    appointment_time = data.get('time', '').strip()
+    remark = data.get('remark', '').strip()
 
-    if not all([service_name, start_time_str, end_time_str]):
-        return jsonify({"error": "缺少必填参数"}), 400
+    # 验证必填字段
+    if not all([service_name, project_name, patient_name, gender, age, telephone, appointment_date, appointment_time]):
+        return jsonify({"error": "请填写完整的预约信息"}), 400
 
-    # 检查服务是否存在
+    # 检查科室是否存在
     service = Service.query.get(service_name)
     if not service:
-        return jsonify({"error": "服务不存在"}), 404
+        return jsonify({"error": "科室不存在"}), 404
     
     if service.state != 'active':
-        return jsonify({"error": "该服务当前不可用"}), 400
+        return jsonify({"error": "该科室当前不可用"}), 400
 
     try:
+        # 组合完整时间
+        start_time_str = f"{appointment_date}T{appointment_time}:00"
         start_time = datetime.fromisoformat(start_time_str)
-        end_time = datetime.fromisoformat(end_time_str)
+        # 默认1小时
+        hour = int(appointment_time[:2]) + 1
+        end_time = datetime.fromisoformat(f"{appointment_date}T{hour:02d}:{appointment_time[3:]}:00")
     except ValueError:
-        return jsonify({"error": "时间格式错误"}), 400
-
-    if start_time >= end_time:
-        return jsonify({"error": "开始时间必须早于结束时间"}), 400
+        return jsonify({"error": "日期或时间格式错误"}), 400
 
     if start_time < datetime.now():
         return jsonify({"error": "不能预约过去的时间"}), 400
@@ -95,9 +101,18 @@ def create_appointment():
             "conflict_time": f"{conflict.start_time} ~ {conflict.end_time}"
         }), 409
 
+    # 创建预约
     appointment = Appointment(
         user_id=user.id,
         service_name=service_name,
+        project_name=project_name,
+        patient_name=patient_name,
+        gender=gender,
+        age=age,
+        telephone=telephone,
+        appointment_date=appointment_date,
+        appointment_time=appointment_time,
+        remark=remark,
         start_time=start_time,
         end_time=end_time,
         status='pending'
@@ -106,16 +121,15 @@ def create_appointment():
     db.session.add(appointment)
     db.session.commit()
 
-    return jsonify({"message": "预约创建成功", "data": appointment.to_dict()}), 201
+    return jsonify({"message": "预约提交成功", "data": appointment.to_dict()}), 201
 
 
 # ============================================================
 # 接口2: 我的预约列表
 # ============================================================
-@appointment_bp.route('/appointments', methods=['GET'])
+@appointment_bp.route('/api/appointments', methods=['GET'])
 @_require_auth
 def get_appointments():
-    """获取当前用户的预约列表"""
     user = _current_user()
     
     status = request.args.get('status')
@@ -148,15 +162,13 @@ def get_appointments():
 # ============================================================
 # 接口3: 预约详情
 # ============================================================
-@appointment_bp.route('/appointments/<int:id>', methods=['GET'])
+@appointment_bp.route('/api/appointments/<int:id>', methods=['GET'])
 @_require_auth
 def get_appointment(id):
-    """获取预约详情"""
     appointment = Appointment.query.get(id)
     if not appointment:
         return jsonify({"error": "预约不存在"}), 404
     
-    # 只有本人或管理员可以查看
     user = _current_user()
     if appointment.user_id != user.id and getattr(user, 'role', None) != 'admin':
         return jsonify({"error": "无权查看此预约"}), 403
@@ -167,15 +179,13 @@ def get_appointment(id):
 # ============================================================
 # 接口4: 取消预约
 # ============================================================
-@appointment_bp.route('/appointments/<int:id>/cancel', methods=['PUT'])
+@appointment_bp.route('/api/appointments/<int:id>/cancel', methods=['PUT'])
 @_require_auth
 def cancel_appointment(id):
-    """取消预约"""
     appointment = Appointment.query.get(id)
     if not appointment:
         return jsonify({"error": "预约不存在"}), 404
 
-    # 只有本人或管理员可以取消
     user = _current_user()
     if appointment.user_id != user.id and getattr(user, 'role', None) != 'admin':
         return jsonify({"error": "无权取消此预约"}), 403
@@ -198,10 +208,9 @@ def cancel_appointment(id):
 # ============================================================
 # 接口5: 确认预约（管理员）
 # ============================================================
-@appointment_bp.route('/appointments/<int:id>/confirm', methods=['PUT'])
+@appointment_bp.route('/api/appointments/<int:id>/confirm', methods=['PUT'])
 @_require_admin
 def confirm_appointment(id):
-    """管理员确认预约"""
     appointment = Appointment.query.get(id)
     if not appointment:
         return jsonify({"error": "预约不存在"}), 404
@@ -218,10 +227,9 @@ def confirm_appointment(id):
 # ============================================================
 # 接口6: 完成预约（管理员）
 # ============================================================
-@appointment_bp.route('/appointments/<int:id>/complete', methods=['PUT'])
+@appointment_bp.route('/api/appointments/<int:id>/complete', methods=['PUT'])
 @_require_admin
 def complete_appointment(id):
-    """管理员完成预约"""
     appointment = Appointment.query.get(id)
     if not appointment:
         return jsonify({"error": "预约不存在"}), 404
@@ -238,21 +246,19 @@ def complete_appointment(id):
 # ============================================================
 # 接口7: 可预约时段
 # ============================================================
-@appointment_bp.route('/appointments/slots', methods=['GET'])
+@appointment_bp.route('/api/appointments/slots', methods=['GET'])
 def get_available_slots():
-    """查询某个服务在某天的可预约时段"""
     service_name = request.args.get('service_name', '').strip()
     date_str = request.args.get('date')
 
     if not service_name or not date_str:
         return jsonify({"error": "缺少必填参数: service_name 和 date"}), 400
 
-    # 检查服务是否存在且可用
     service = Service.query.get(service_name)
     if not service:
-        return jsonify({"error": "服务不存在"}), 404
+        return jsonify({"error": "科室不存在"}), 404
     if service.state != 'active':
-        return jsonify({"error": "该服务当前不可用"}), 400
+        return jsonify({"error": "该科室当前不可用"}), 400
 
     try:
         start_date = datetime.fromisoformat(f"{date_str}T00:00:00")
@@ -260,7 +266,6 @@ def get_available_slots():
     except ValueError:
         return jsonify({"error": "日期格式错误，请使用 YYYY-MM-DD"}), 400
 
-    # 查询该服务已被预约的时段
     booked = Appointment.query.filter(
         and_(
             Appointment.service_name == service_name,
@@ -277,7 +282,6 @@ def get_available_slots():
             'end': b.end_time.hour + b.end_time.minute / 60
         })
 
-    # 生成全天时段（9:00-18:00，每小时一个时段）
     all_slots = []
     current_hour = 9.0
 
@@ -312,10 +316,9 @@ def get_available_slots():
 # ============================================================
 # 接口8: 批量取消（管理员）
 # ============================================================
-@appointment_bp.route('/appointments/batch-cancel', methods=['POST'])
+@appointment_bp.route('/api/appointments/batch-cancel', methods=['POST'])
 @_require_admin
 def batch_cancel():
-    """管理员批量取消预约"""
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "请求体不能为空"}), 400
@@ -350,4 +353,5 @@ def batch_cancel():
         'message': f'成功取消 {len(cancelled)} 个预约',
         'cancelled': cancelled,
         'failed': failed
+    }), 200
     }), 200
