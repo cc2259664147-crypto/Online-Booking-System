@@ -79,7 +79,7 @@
     let diseases = {};
     let facilities = {};
 
-    fetch("data.json")
+    fetch("/static/data.json")
       .then(response => response.json())
       .then(data => {
         diseases = data.diseases;
