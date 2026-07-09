@@ -18,26 +18,34 @@ def book():
     if not data:
         return jsonify({"error": "请求体不能为空"}), 400
 
-    service_id = data.get('serviceId')
+    service_name = (data.get('serviceName') or '').strip()
+    patient_name = (data.get('patientName') or '').strip()
+    gender = (data.get('gender') or '').strip()
+    age = data.get('age')
+    phone = (data.get('phone') or '').strip()
     time_str = data.get('appointmentTime')
     note = data.get('note')
 
-    if not service_id or not time_str:
-        return jsonify({"error": "serviceId, appointmentTime 不能为空"}), 400
+    if not service_name or not patient_name or not gender or not age or not phone or not time_str:
+        return jsonify({"error": "serviceName, patientName, gender, age, phone, appointmentTime 均为必填"}), 400
 
-    user = current_user()
-    service = MedicalService.query.get(service_id)
+    service = MedicalService.query.filter_by(name=service_name, active=True).first()
     if not service:
-        return jsonify({"error": "服务不存在"}), 400
+        return jsonify({"error": "服务不存在或已停用"}), 400
 
     try:
         appointment_time = datetime.fromisoformat(time_str)
     except ValueError:
         return jsonify({"error": "appointmentTime 格式错误，请使用 ISO 格式"}), 400
 
+    user = current_user()
     appointment = Appointment(
         user_id=user.id,
-        service_id=service_id,
+        service_name=service_name,
+        patient_name=patient_name,
+        gender=gender,
+        age=age,
+        phone=phone,
         appointment_time=appointment_time,
         status=AppointmentStatus.BOOKED,
         note=note,

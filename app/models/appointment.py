@@ -8,19 +8,25 @@ class Appointment(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
-    service_id = db.Column(db.Integer, db.ForeignKey('medical_service.id'), nullable=False)
+    service_name = db.Column(db.String(100), nullable=False)
+    patient_name = db.Column(db.String(50), nullable=False)
+    gender = db.Column(db.String(10), nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
     appointment_time = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.Enum(AppointmentStatus), default=AppointmentStatus.BOOKED, nullable=False)
     note = db.Column(db.Text, nullable=True)
 
     user = db.relationship('AppUser', backref='appointments')
-    service = db.relationship('MedicalService', backref='appointments')
 
     def to_dict(self):
         return {
             "id": self.id,
-            "username": self.user.username if self.user else None,
-            "serviceName": self.service.name if self.service else None,
+            "serviceName": self.service_name,
+            "patientName": self.patient_name,
+            "gender": self.gender,
+            "age": self.age,
+            "phone": self.phone,
             "appointmentTime": self.appointment_time.isoformat() if self.appointment_time else None,
             "status": self.status.value if self.status else None,
             "note": self.note,
