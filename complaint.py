@@ -16,7 +16,6 @@ class Complaint(db.Model):
     __table_args__ = (
         db.UniqueConstraint('user_id', 'service_name', name='unique_user_service_complaint'),
     )
-
     def to_dict(self):
         return {
             
