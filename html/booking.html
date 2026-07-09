@@ -140,7 +140,7 @@ textarea {
         <h2>填写预约信息</h2>
         <p class="selected-info" id="selectedProjectText"></p>
 
-        <form action="#" method="post">
+        <form id="appointmentForm">
             <input type="hidden" id="departmentInput" name="department">
             <input type="hidden" id="projectInput" name="project">
 
@@ -209,6 +209,7 @@ function selectDepartment(department) {
 
     departmentProjects[department].forEach(project => {
         const btn = document.createElement("button");
+        btn.type = "button";
         btn.className = "project-btn";
         btn.innerText = project;
         btn.onclick = function () {
@@ -229,6 +230,57 @@ function selectProject(project) {
     document.getElementById("departmentInput").value = selectedDepartment;
     document.getElementById("projectInput").value = selectedProject;
 }
+
+document.getElementById("appointmentForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const gender = document.querySelector("input[name='gender']:checked")?.value;
+    const age = document.getElementById("age").value;
+    const telephone = document.getElementById("telephone").value.trim();
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+    const remark = document.getElementById("remark").value.trim();
+
+    if (!selectedDepartment || !selectedProject) {
+        alert("请先选择科室和项目");
+        return;
+    }
+
+    const start_time = `${date}T${time}:00`;
+
+    fetch("http://127.0.0.1:5000/api/appointments", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: name,
+            gender: gender,
+            age: Number(age),
+            telephone: telephone,
+            department: selectedDepartment,
+            project: selectedProject,
+            start_time: start_time,
+            remark: remark
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            alert(data.message || "预约成功");
+            document.getElementById("appointmentForm").reset();
+            document.getElementById("formBox").classList.add("hidden");
+            document.getElementById("projectBox").classList.add("hidden");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("提交失败，请检查后端是否启动");
+    });
+});
 </script>
 
 </body>

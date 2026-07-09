@@ -27,23 +27,46 @@
 <div class="container my-5">
   <div class="row justify-content-center">
     <div class="col-md-6">
-      <form method="post">
+      <div class="mb-3">
+  <label class="form-label"><b>用户名或手机号</b></label>
+  <input type="text" class="form-control" id="loginName" placeholder="请输入用户名或手机号">
+</div>
 
-        <div class="mb-3">
-          <label for="username" class="form-label"><b>用户名</b></label>
-          <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名或邮箱号" required>
-        </div>
+<div class="mb-3">
+  <label class="form-label"><b>密码</b></label>
+  <input type="password" class="form-control" id="loginPassword" placeholder="请输入密码">
+</div>
 
-        <div class="mb-3">
-            <label for="password" class="form-label"><b>密码</b></label>
-            <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" required>
-        </div>
+<div class="text-center">
+  <button type="button" class="btn btn-primary" onclick="login()">登录</button>
+</div>
 
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary">登录</button>
-        </div>
-        
-      </form>
+<p class="text-center mt-3">
+  没有账号？<a href="register.html">去注册</a>
+</p>
+
+<script>
+function login() {
+  const loginName = document.getElementById("loginName").value.trim();
+  const loginPassword = document.getElementById("loginPassword").value.trim();
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user) {
+    alert("账号不存在，请先注册");
+    return;
+  }
+
+  if ((loginName === user.username || loginName === user.phone) && loginPassword === user.password) {
+    localStorage.setItem("isLogin", "true");
+    localStorage.setItem("currentUser", JSON.stringify(user));
+    alert("登录成功");
+    location.href = "home.html";
+  } else {
+    alert("用户名或密码错误");
+  }
+}
+</script>
     </div>
   </div>
 </div>
