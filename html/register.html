@@ -19,12 +19,14 @@
     <button class="btn btn-primary w-100" onclick="register()">注册</button>
 
     <p class="text-center mt-3">
-      已有账号？<a href="log_in.html">去登录</a>
+      已有账号？<a href="/login">去登录</a>
     </p>
   </div>
 </div>
 
 <script>
+const API_BASE = "http://127.0.0.1:5000";
+
 function register() {
   const username = document.getElementById("username").value.trim();
   const phone = document.getElementById("phone").value.trim();
@@ -35,16 +37,30 @@ function register() {
     return;
   }
 
-  const user = {
-    username,
-    phone,
-    password
-  };
-
-  localStorage.setItem("user", JSON.stringify(user));
-
-  alert("注册成功，请登录");
-  location.href = "log_in.html";
+  fetch(`${API_BASE}/api/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      username: username,
+      phone: phone,
+      password: password
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) {
+      alert(data.error);
+    } else {
+      alert("注册成功，请登录");
+      location.href = "/login";
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("注册失败，请检查后端是否启动");
+  });
 }
 </script>
 

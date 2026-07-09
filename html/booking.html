@@ -7,103 +7,94 @@
 
 <style>
 body {
-    margin: 0;
-    background: linear-gradient(135deg, #b2d3ec, #c4e7ed);
-    min-height: 100vh;
-    font-family: Arial, "Microsoft YaHei", sans-serif;
+  margin: 0;
+  background: linear-gradient(135deg, #b2d3ec, #c4e7ed);
+  min-height: 100vh;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
 }
 
 .container {
-    width: 90%;
-    max-width: 1000px;
-    margin: 40px auto;
+  width: 90%;
+  max-width: 1000px;
+  margin: 40px auto;
 }
 
 h1 {
-    text-align: center;
-    color: #0d6efd;
+  text-align: center;
+  color: #0d6efd;
 }
 
 .department-box,
 .project-box,
 .form-box {
-    background: rgba(255,255,255,0.92);
-    padding: 25px;
-    border-radius: 14px;
-    margin-top: 25px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.92);
+  padding: 25px;
+  border-radius: 14px;
+  margin-top: 25px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 
 .department-list,
 .project-list {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    justify-content: center;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .department-btn,
 .project-btn {
-    border: none;
-    padding: 15px 28px;
-    border-radius: 12px;
-    background: #0d6efd;
-    color: white;
-    font-size: 15px;
-    cursor: pointer;
-}
-
-.department-btn:hover,
-.project-btn:hover {
-    background: #084298;
+  border: none;
+  padding: 15px 28px;
+  border-radius: 12px;
+  background: #0d6efd;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
 }
 
 .project-btn {
-    background: #20c997;
-}
-
-.project-btn:hover {
-    background: #158765;
+  background: #20c997;
 }
 
 form {
-    max-width: 500px;
-    margin: 0 auto;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 label {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 input,
 textarea {
-    width: 100%;
-    padding: 8px;
-    margin-top: 6px;
-    box-sizing: border-box;
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  box-sizing: border-box;
 }
 
 .gender input {
-    width: auto;
+  width: auto;
 }
 
 .submit-btn {
-    background: #0d6efd;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
+  background: #0d6efd;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .hidden {
-    display: none;
+  display: none;
 }
 
 .selected-info {
-    text-align: center;
-    color: #555;
-    margin-bottom: 15px;
+  text-align: center;
+  color: #555;
+  margin-bottom: 15px;
 }
 </style>
 </head>
@@ -111,175 +102,221 @@ textarea {
 <body>
 
 <div class="container">
+  <h1>预约大厅</h1>
 
-    <h1>预约大厅</h1>
+  <div class="department-box">
+    <h2>请选择预约科室</h2>
+    <div class="department-list">加载中...</div>
+  </div>
 
-    <!-- 第一排：科室 -->
-    <div class="department-box">
-        <h2>请选择预约科室</h2>
+  <div class="project-box hidden" id="projectBox">
+    <h2>请选择预约项目</h2>
+    <p class="selected-info" id="selectedDepartmentText"></p>
+    <div class="project-list" id="projectList"></div>
+  </div>
 
-        <div class="department-list">
-            <button class="department-btn" onclick="selectDepartment('内科')">内科</button>
-            <button class="department-btn" onclick="selectDepartment('外科')">外科</button>
-            <button class="department-btn" onclick="selectDepartment('儿科')">儿科</button>
-            <button class="department-btn" onclick="selectDepartment('口腔科')">口腔科</button>
-            <button class="department-btn" onclick="selectDepartment('眼科')">眼科</button>
-            <button class="department-btn" onclick="selectDepartment('皮肤科')">皮肤科</button>
-        </div>
-    </div>
+  <div class="form-box hidden" id="formBox">
+    <h2>填写预约信息</h2>
+    <p class="selected-info" id="selectedProjectText"></p>
 
-    <!-- 第二步：项目 -->
-    <div class="project-box hidden" id="projectBox">
-        <h2>请选择预约项目</h2>
-        <p class="selected-info" id="selectedDepartmentText"></p>
-        <div class="project-list" id="projectList"></div>
-    </div>
+    <form id="appointmentForm">
+      <label for="patientName">姓名:</label>
+      <input type="text" id="patientName" placeholder="请输入患者姓名" required><br><br>
 
-    <!-- 第三步：预约表单 -->
-    <div class="form-box hidden" id="formBox">
-        <h2>填写预约信息</h2>
-        <p class="selected-info" id="selectedProjectText"></p>
+      <label>性别:</label>
+      <div class="gender">
+        <input type="radio" id="male" name="gender" value="男" required>
+        <label for="male">男</label>
 
-        <form id="appointmentForm">
-            <input type="hidden" id="departmentInput" name="department">
-            <input type="hidden" id="projectInput" name="project">
+        <input type="radio" id="female" name="gender" value="女">
+        <label for="female">女</label>
 
-            <label for="name">姓名:</label>
-            <input type="text" id="name" name="name" placeholder="请输入您的姓名" required><br><br>
+        <input type="radio" id="other" name="gender" value="其他">
+        <label for="other">其他</label>
+      </div>
+      <br>
 
-            <label>性别:</label>
-            <div class="gender">
-                <input type="radio" id="male" name="gender" value="男" required>
-                <label for="male">男</label>
+      <label for="age">年龄:</label>
+      <input type="number" id="age" placeholder="请输入年龄" required><br><br>
 
-                <input type="radio" id="female" name="gender" value="女">
-                <label for="female">女</label>
+      <label for="phone">电话:</label>
+      <input type="tel" id="phone" placeholder="请输入手机号" required><br><br>
 
-                <input type="radio" id="else" name="gender" value="其他">
-                <label for="else">其他</label>
-            </div>
-            <br>
+      <label for="date">预约日期:</label>
+      <input type="date" id="date" required><br><br>
 
-            <label for="age">年龄:</label>
-            <input type="number" id="age" name="age" placeholder="请输入您的年龄" required><br><br>
+      <label for="time">预约时间:</label>
+      <input type="time" id="time" required><br><br>
 
-            <label for="telephone">电话:</label>
-            <input type="tel" id="telephone" name="telephone" placeholder="请输入您的电话号码" required><br><br>
+      <label for="remark">备注:</label>
+      <textarea id="remark" rows="3" placeholder="请输入症状或其他需求"></textarea><br><br>
 
-            <label for="date">预约日期:</label>
-            <input type="date" id="date" name="date" required><br><br>
-
-            <label for="time">预约时间:</label>
-            <input type="time" id="time" name="time" required><br><br>
-
-            <label for="remark">备注:</label>
-            <textarea id="remark" name="remark" rows="3" placeholder="请输入症状或其他需求"></textarea><br><br>
-
-            <input class="submit-btn" type="submit" value="确定预约">
-        </form>
-    </div>
-
+      <input class="submit-btn" type="submit" value="确定预约">
+    </form>
+  </div>
 </div>
 
 <script>
-const departmentProjects = {
-    "内科": ["感冒", "发烧", "咳嗽", "高血压", "糖尿病"],
-    "外科": ["外伤处理", "伤口换药", "术后复查", "手术咨询"],
-    "儿科": ["儿童发烧", "儿童咳嗽", "疫苗接种", "儿童体检"],
-    "口腔科": ["洗牙", "补牙", "拔牙", "牙齿矫正"],
-    "眼科": ["视力检查", "近视检查", "眼干眼涩", "结膜炎"],
-    "皮肤科": ["过敏", "湿疹", "痤疮", "皮肤瘙痒"]
+const API_BASE = "http://127.0.0.1:5000";
+
+let allServices = [];
+let selectedService = null;
+
+window.onload = function () {
+  const user = JSON.parse(localStorage.getItem("currentUser"));
+
+  if (!user) {
+    alert("请先登录后再预约");
+    location.href = "/login";
+    return;
+  }
+
+  loadServices();
 };
 
-let selectedDepartment = "";
-let selectedProject = "";
+function loadServices() {
+  fetch(`${API_BASE}/api/services`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
 
-function selectDepartment(department) {
-    selectedDepartment = department;
-    selectedProject = "";
-
-    document.getElementById("projectBox").classList.remove("hidden");
-    document.getElementById("formBox").classList.add("hidden");
-
-    document.getElementById("selectedDepartmentText").innerText =
-        "当前选择科室：" + department;
-
-    const projectList = document.getElementById("projectList");
-    projectList.innerHTML = "";
-
-    departmentProjects[department].forEach(project => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "project-btn";
-        btn.innerText = project;
-        btn.onclick = function () {
-            selectProject(project);
-        };
-        projectList.appendChild(btn);
+      allServices = data.data || [];
+      renderDepartments();
+    })
+    .catch(err => {
+      console.error(err);
+      alert("加载服务失败，请检查后端是否启动");
     });
 }
 
-function selectProject(project) {
-    selectedProject = project;
+function renderDepartments() {
+  const departmentList = document.querySelector(".department-list");
+  departmentList.innerHTML = "";
 
-    document.getElementById("formBox").classList.remove("hidden");
+  if (allServices.length === 0) {
+    departmentList.innerHTML = "暂无可预约服务";
+    return;
+  }
 
-    document.getElementById("selectedProjectText").innerText =
-        "已选择：" + selectedDepartment + " - " + selectedProject;
+  const categories = [...new Set(allServices.map(s => s.category || "其他"))];
 
-    document.getElementById("departmentInput").value = selectedDepartment;
-    document.getElementById("projectInput").value = selectedProject;
+  categories.forEach(category => {
+    const btn = document.createElement("button");
+    btn.className = "department-btn";
+    btn.type = "button";
+    btn.innerText = category;
+
+    btn.onclick = function () {
+      selectDepartment(category);
+    };
+
+    departmentList.appendChild(btn);
+  });
+}
+
+function selectDepartment(category) {
+  selectedService = null;
+
+  document.getElementById("projectBox").classList.remove("hidden");
+  document.getElementById("formBox").classList.add("hidden");
+
+  document.getElementById("selectedDepartmentText").innerText =
+    "当前选择科室：" + category;
+
+  const projectList = document.getElementById("projectList");
+  projectList.innerHTML = "";
+
+  const services = allServices.filter(s => (s.category || "其他") === category);
+
+  services.forEach(service => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "project-btn";
+    btn.innerText = service.name;
+
+    btn.onclick = function () {
+      selectService(service);
+    };
+
+    projectList.appendChild(btn);
+  });
+}
+
+function selectService(service) {
+  selectedService = service;
+
+  document.getElementById("formBox").classList.remove("hidden");
+
+  document.getElementById("selectedProjectText").innerText =
+    "已选择：" + (service.category || "其他") + " - " + service.name;
 }
 
 document.getElementById("appointmentForm").addEventListener("submit", function(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
-    const gender = document.querySelector("input[name='gender']:checked")?.value;
-    const age = document.getElementById("age").value;
-    const telephone = document.getElementById("telephone").value.trim();
-    const date = document.getElementById("date").value;
-    const time = document.getElementById("time").value;
-    const remark = document.getElementById("remark").value.trim();
+  const user = JSON.parse(localStorage.getItem("currentUser"));
 
-    if (!selectedDepartment || !selectedProject) {
-        alert("请先选择科室和项目");
-        return;
+  if (!user) {
+    alert("请先登录");
+    location.href = "/login";
+    return;
+  }
+
+  if (!selectedService) {
+    alert("请先选择预约服务");
+    return;
+  }
+
+  const patientName = document.getElementById("patientName").value.trim();
+  const gender = document.querySelector("input[name='gender']:checked")?.value;
+  const age = document.getElementById("age").value;
+  const phone = document.getElementById("phone").value.trim();
+  const date = document.getElementById("date").value;
+  const time = document.getElementById("time").value;
+  const remark = document.getElementById("remark").value.trim();
+
+  if (!patientName || !gender || !age || !phone || !date || !time) {
+    alert("请填写完整预约信息");
+    return;
+  }
+
+  const appointmentTime = `${date}T${time}:00`;
+
+  fetch(`${API_BASE}/api/appointments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": user.id
+    },
+    body: JSON.stringify({
+      serviceName: selectedService.name,
+      patientName: patientName,
+      gender: gender,
+      age: Number(age),
+      phone: phone,
+      appointmentTime: appointmentTime,
+      note: remark
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) {
+      alert(data.error);
+    } else {
+      alert(data.message || "预约成功");
+      document.getElementById("appointmentForm").reset();
+      document.getElementById("formBox").classList.add("hidden");
+      document.getElementById("projectBox").classList.add("hidden");
+      selectedService = null;
     }
-
-    const start_time = `${date}T${time}:00`;
-
-    fetch("http://127.0.0.1:5000/api/appointments", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name: name,
-            gender: gender,
-            age: Number(age),
-            telephone: telephone,
-            department: selectedDepartment,
-            project: selectedProject,
-            start_time: start_time,
-            remark: remark
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
-        } else {
-            alert(data.message || "预约成功");
-            document.getElementById("appointmentForm").reset();
-            document.getElementById("formBox").classList.add("hidden");
-            document.getElementById("projectBox").classList.add("hidden");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("提交失败，请检查后端是否启动");
-    });
+  })
+  .catch(err => {
+    console.error(err);
+    alert("提交失败，请检查后端是否启动");
+  });
 });
 </script>
 
