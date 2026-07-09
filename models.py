@@ -8,8 +8,7 @@ class Appointment(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
-    service_id = db.Column(db.Integer, nullable=False)
-    provider_id = db.Column(db.Integer, nullable=False)
+    service_name = db.Column(db.String(100), nullable=False)  # 改为 service_name，与您的同学保持一致
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(20), default='pending')
@@ -19,8 +18,7 @@ class Appointment(db.Model):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'service_id': self.service_id,
-            'provider_id': self.provider_id,
+            'service_name': self.service_name,  # 改为 service_name
             'start_time': self.start_time.isoformat(),
             'end_time': self.end_time.isoformat(),
             'status': self.status,
