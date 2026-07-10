@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <title>预约大厅</title>
 
 <style>
@@ -109,6 +110,21 @@ textarea {
 </head>
 
 <body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a style="color:gold;font-size:36px;font-weight:bold;text-decoration:underline;" href="https://www.bilibili.com/video/BV1xsRSBQENA/?spm_id_from=333.337.search-card.all.click&vd_source=96780bb473dbf29756b020543bc2ff91" target="_blank">奶龙</a>
+    <div>
+      <a class="nav-link d-inline text-white mx-2" href="/home">主页</a>
+      <a class="nav-link d-inline text-white mx-2" href="/about">帮助</a>
+      <a class="nav-link d-inline text-white mx-2" href="/contact">反馈</a>
+      <a class="nav-link d-inline text-white mx-2" href="/more">更多</a>
+      <a class="nav-link d-inline text-white mx-2" href="/my-booking">我的预约</a>
+    </div>
+  </div>
+  <span id="userInfo" class="text-white mx-2"></span>
+<a id="loginLink" class="nav-link d-inline text-white mx-2" href="/login">登录</a>
+<a id="logoutLink" class="nav-link d-inline text-white mx-2" href="#" onclick="logout()" style="display:none;">退出</a>
+</nav>
 
 <div class="container">
 
