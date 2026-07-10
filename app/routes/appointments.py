@@ -1,4 +1,5 @@
 """Appointment routes — book, cancel, list."""
+import re
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from app.extensions import db
@@ -26,8 +27,18 @@ def book():
     time_str = data.get('appointmentTime')
     note = data.get('note')
 
-    if not service_name or not patient_name or not gender or not age or not phone or not time_str:
+    if not service_name or not patient_name or not gender or age is None or not phone or not time_str:
         return jsonify({"error": "serviceName, patientName, gender, age, phone, appointmentTime 均为必填"}), 400
+
+    if not re.match(r'^1[3-9]\d{9}$', phone):
+        return jsonify({"error": "手机号必须为11位中国大陆手机号"}), 400
+
+    try:
+        age = int(age)
+    except (ValueError, TypeError):
+        return jsonify({"error": "年龄必须为整数"}), 400
+    if age < 0 or age > 150:
+        return jsonify({"error": "年龄必须在 0-150 之间"}), 400
 
     service = MedicalService.query.filter_by(name=service_name, active=True).first()
     if not service:

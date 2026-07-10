@@ -1,8 +1,7 @@
-"""Entry point — mirrors BookingApplication.java main method."""
 from app import create_app
+from app.config import Config
 
 app = create_app()
 
-if __name__ == '__main__':
-    # Java version ran on port 9090 (application.yml)
-    app.run(debug=True, port=9090)
+if __name__ == "__main__":
+    app.run(debug=True, port=Config.SERVER_PORT)

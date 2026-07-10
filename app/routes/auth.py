@@ -1,4 +1,5 @@
 """Auth routes — register + login."""
+import re
 from flask import Blueprint, request, jsonify
 from app.extensions import db
 from app.models.user import AppUser
@@ -18,6 +19,10 @@ def register():
     password = (data.get('password') or '').strip()
     role_str = data.get('role', 'USER')
     phone = data.get('phone')
+    if phone is not None:
+        phone = str(phone).strip()
+        if phone and not re.match(r'^1[3-9]\d{9}$', phone):
+            return jsonify({"error": "手机号必须为11位中国大陆手机号"}), 400
 
     if not username or not password:
         return jsonify({"error": "用户名和密码不能为空"}), 400
@@ -30,11 +35,24 @@ def register():
     except ValueError:
         role = UserRole.USER
 
-    user = AppUser(
-        username=username, role=role, phone=phone,
-        gender=data.get('gender', '').strip() or None,
-        age=data.get('age'),
-    )
+    age = data.get('age')
+    if age is not None:
+        try:
+            age = int(age)
+        except (ValueError, TypeError):
+            return jsonify({"error": "年龄必须为整数"}), 400
+        if age < 0 or age > 150:
+            return jsonify({"error": "年龄必须在 0-150 之间"}), 400
+
+    try:
+        user = AppUser(
+            username=username, role=role, phone=phone,
+            gender=data.get('gender', '').strip() or None,
+            age=age,
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
     user.set_password(password)
     db.session.add(user)
     db.session.commit()

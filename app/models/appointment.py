@@ -1,4 +1,6 @@
 """Appointment entity → SQLAlchemy model."""
+import re
+from sqlalchemy.orm import validates
 from app.extensions import db
 from app.models.enums import AppointmentStatus
 
@@ -18,6 +20,25 @@ class Appointment(db.Model):
     note = db.Column(db.Text, nullable=True)
 
     user = db.relationship('AppUser', backref='appointments')
+
+    @validates('phone')
+    def validate_phone(self, key, phone):
+        if phone is not None:
+            phone = str(phone).strip()
+            if not re.match(r'^1[3-9]\d{9}$', phone):
+                raise ValueError("手机号必须为11位中国大陆手机号")
+        return phone
+
+    @validates('age')
+    def validate_age(self, key, age):
+        if age is not None:
+            try:
+                age = int(age)
+            except (ValueError, TypeError):
+                raise ValueError("年龄必须为整数")
+            if age < 0 or age > 150:
+                raise ValueError("年龄必须在 0-150 之间")
+        return age
 
     def to_dict(self):
         return {
